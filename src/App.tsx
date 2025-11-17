@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CreateAdProof from "./pages/CreateAdProof";
 import ProofView from "./pages/ProofView";
+import CampaignDetail from "./pages/CampaignDetail";
+import CampaignView from "./pages/CampaignView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create" element={<CreateAdProof />} />
           <Route path="/create/:platform/:format" element={<Dashboard />} />
+          <Route path="/campaign/:campaignId" element={<CampaignDetail />} />
+          <Route path="/c/:shareToken" element={<CampaignView />} />
           <Route path="/proof/:shareToken" element={<ProofView />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

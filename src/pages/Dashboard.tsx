@@ -6,9 +6,11 @@ import { Plus, Users, FolderOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
+import { CreateCampaignDialog } from "@/components/CreateCampaignDialog";
 
 const Dashboard = () => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
 
   const { data: clients } = useQuery({
     queryKey: ["clients"],
@@ -157,6 +159,14 @@ const Dashboard = () => {
           </Card>
         </div>
       </main>
+
+      {selectedClientId && (
+        <CreateCampaignDialog
+          open={createCampaignOpen}
+          onOpenChange={setCreateCampaignOpen}
+          clientId={selectedClientId}
+        />
+      )}
     </div>
   );
 };

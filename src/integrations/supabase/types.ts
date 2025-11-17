@@ -137,6 +137,8 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          platform: string | null
+          share_token: string | null
           updated_at: string
         }
         Insert: {
@@ -144,6 +146,8 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          platform?: string | null
+          share_token?: string | null
           updated_at?: string
         }
         Update: {
@@ -151,6 +155,8 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          platform?: string | null
+          share_token?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -233,7 +239,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_campaign_share_token: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
