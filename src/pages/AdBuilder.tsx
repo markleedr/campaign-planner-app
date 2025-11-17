@@ -10,6 +10,10 @@ import { ArrowLeft, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import { FacebookSingleImagePreview } from "@/components/ad-previews/FacebookSingleImagePreview";
+import { FacebookStoryPreview } from "@/components/ad-previews/FacebookStoryPreview";
+import { InstagramSingleImagePreview } from "@/components/ad-previews/InstagramSingleImagePreview";
+import { LinkedInSingleImagePreview } from "@/components/ad-previews/LinkedInSingleImagePreview";
 
 const AdBuilder = () => {
   const navigate = useNavigate();
@@ -270,30 +274,53 @@ const AdBuilder = () => {
           <div className="space-y-6">
             <Card className="p-6">
               <h3 className="mb-4 font-semibold">Live Preview</h3>
-              <div className="space-y-4 rounded-lg border border-border p-4">
-                {imagePreview && (
-                  <img
-                    src={imagePreview}
-                    alt="Ad preview"
-                    className="w-full rounded-lg object-cover"
+              <div className="flex justify-center">
+                {platform === "facebook" && format === "single_image" && (
+                  <FacebookSingleImagePreview
+                    primaryText={adData.primaryText}
+                    imageUrl={imagePreview}
+                    headline={adData.headline}
+                    description={adData.description}
+                    linkUrl={adData.linkUrl}
+                    callToAction={adData.callToAction}
                   />
                 )}
-                {adData.primaryText && (
-                  <p className="text-sm text-foreground">{adData.primaryText}</p>
+                {platform === "facebook" && format === "story" && (
+                  <FacebookStoryPreview
+                    primaryText={adData.primaryText}
+                    imageUrl={imagePreview}
+                    headline={adData.headline}
+                    description={adData.description}
+                    callToAction={adData.callToAction}
+                  />
                 )}
-                {adData.headline && (
-                  <h4 className="font-semibold text-foreground">{adData.headline}</h4>
+                {platform === "instagram" && format === "single_image" && (
+                  <InstagramSingleImagePreview
+                    primaryText={adData.primaryText}
+                    imageUrl={imagePreview}
+                    headline={adData.headline}
+                    description={adData.description}
+                    callToAction={adData.callToAction}
+                  />
                 )}
-                {adData.description && (
-                  <p className="text-sm text-muted-foreground">{adData.description}</p>
+                {platform === "instagram" && format === "story" && (
+                  <FacebookStoryPreview
+                    primaryText={adData.primaryText}
+                    imageUrl={imagePreview}
+                    headline={adData.headline}
+                    description={adData.description}
+                    callToAction={adData.callToAction}
+                  />
                 )}
-                {adData.linkUrl && (
-                  <p className="text-xs text-muted-foreground">{adData.linkUrl}</p>
-                )}
-                {adData.callToAction && (
-                  <Button size="sm" className="w-full">
-                    {adData.callToAction}
-                  </Button>
+                {platform === "linkedin" && format === "single_image" && (
+                  <LinkedInSingleImagePreview
+                    primaryText={adData.primaryText}
+                    imageUrl={imagePreview}
+                    headline={adData.headline}
+                    description={adData.description}
+                    linkUrl={adData.linkUrl}
+                    callToAction={adData.callToAction}
+                  />
                 )}
               </div>
             </Card>
