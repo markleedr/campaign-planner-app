@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CreateAdProof from "./pages/CreateAdProof";
+import AdBuilder from "./pages/AdBuilder";
 import ProofView from "./pages/ProofView";
 import CampaignDetail from "./pages/CampaignDetail";
 import CampaignView from "./pages/CampaignView";
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create" element={<CreateAdProof />} />
+          <Route path="/ad-builder" element={<AdBuilder />} />
           <Route path="/create/:platform/:format" element={<Dashboard />} />
           <Route path="/campaign/:campaignId" element={<CampaignDetail />} />
           <Route path="/campaign/:campaignId/builder" element={<CampaignBuilder />} />

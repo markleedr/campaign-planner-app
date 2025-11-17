@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
@@ -8,6 +8,8 @@ import Navigation from "@/components/Navigation";
 
 const CreateAdProof = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const campaignId = searchParams.get("campaignId");
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
 
@@ -52,8 +54,8 @@ const CreateAdProof = () => {
   };
 
   const handleContinue = () => {
-    if (selectedPlatform && selectedFormat) {
-      navigate(`/create/${selectedPlatform}/${selectedFormat}`);
+    if (selectedPlatform && selectedFormat && campaignId) {
+      navigate(`/ad-builder?campaignId=${campaignId}&platform=${selectedPlatform}&format=${selectedFormat}`);
     }
   };
 

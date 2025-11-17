@@ -218,7 +218,7 @@ const CampaignDetail = () => {
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={() => navigate(`/create/${campaign.platform}/select-format?campaignId=${campaign.id}`)}
+                onClick={() => navigate(`/create?campaignId=${campaign.id}`)}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Ad
