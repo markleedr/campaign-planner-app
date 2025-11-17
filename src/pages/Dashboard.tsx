@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateCampaignDialog } from "@/components/CreateCampaignDialog";
+import { AddClientDialog } from "@/components/AddClientDialog";
 
 const Dashboard = () => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
+  const [addClientOpen, setAddClientOpen] = useState(false);
 
   const { data: clients } = useQuery({
     queryKey: ["clients"],
@@ -68,12 +70,14 @@ const Dashboard = () => {
                   <Users className="h-5 w-5" />
                   <CardTitle>Clients</CardTitle>
                 </div>
-                <Link to="/clients">
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Plus className="mr-1 h-3 w-3" />
-                    Add
-                  </Button>
-                </Link>
+                <Button 
+                  size="sm" 
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => setAddClientOpen(true)}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  Add
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -109,12 +113,16 @@ const Dashboard = () => {
                   <FolderOpen className="h-5 w-5" />
                   <CardTitle>Campaigns</CardTitle>
                 </div>
-                <Link to="/clients">
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                {selectedClientId && (
+                  <Button 
+                    size="sm" 
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => setCreateCampaignOpen(true)}
+                  >
                     <Plus className="mr-1 h-3 w-3" />
                     New Campaign
                   </Button>
-                </Link>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -167,6 +175,11 @@ const Dashboard = () => {
           clientId={selectedClientId}
         />
       )}
+
+      <AddClientDialog
+        open={addClientOpen}
+        onOpenChange={setAddClientOpen}
+      />
     </div>
   );
 };
