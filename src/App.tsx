@@ -11,6 +11,7 @@ import ProofView from "./pages/ProofView";
 import CampaignDetail from "./pages/CampaignDetail";
 import CampaignView from "./pages/CampaignView";
 import CampaignBuilder from "./pages/CampaignBuilder";
+import AdProofView from "./pages/AdProofView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/campaign/:campaignId/builder" element={<CampaignBuilder />} />
           <Route path="/c/:shareToken" element={<CampaignView />} />
           <Route path="/proof/:shareToken" element={<ProofView />} />
+          <Route path="/ad/:adProofId" element={<AdProofView />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
