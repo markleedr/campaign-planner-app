@@ -64,21 +64,22 @@ const CreateAdProof = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <main className="mx-auto px-6 py-8">
-        <div className="mb-6">
+      <main className="mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        <div className="mb-4 sm:mb-6">
           <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
           </Button>
-          <h1 className="text-3xl font-bold text-foreground">Create New Ad Proof</h1>
-          <p className="text-muted-foreground">Select platform and format for your ad</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Create New Ad Proof</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Select platform and format for your ad</p>
         </div>
 
-        <div className="mx-auto max-w-5xl space-y-8">
+        <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8">
           {/* Step 1: Select Platform */}
           <div>
-            <h2 className="mb-4 text-xl font-semibold">Step 1: Select Ad Channel</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <h2 className="mb-3 sm:mb-4 text-lg sm:text-xl font-semibold">Step 1: Select Ad Channel</h2>
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {platforms.map((platform) => {
                 const Icon = platform.icon;
                 return (

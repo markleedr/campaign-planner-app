@@ -28,10 +28,10 @@ const CampaignBuilder = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="mx-auto max-w-5xl px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">{campaign?.name}</h1>
-          <p className="text-muted-foreground">{campaign?.client?.name}</p>
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{campaign?.name}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">{campaign?.client?.name}</p>
         </div>
 
         <Card>
