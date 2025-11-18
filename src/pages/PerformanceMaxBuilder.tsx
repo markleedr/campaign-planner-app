@@ -11,6 +11,7 @@ import { ArrowLeft, Upload, Plus, Trash2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import { ResizeImageModal } from "@/components/ResizeImageModal";
 
 interface ImageAsset {
   file: File | null;
@@ -86,6 +87,17 @@ const PerformanceMaxBuilder = () => {
   ]);
 
   const [activeGroupIndex, setActiveGroupIndex] = useState(0);
+  const [resizeModal, setResizeModal] = useState<{
+    isOpen: boolean;
+    file: File | null;
+    type: "landscape" | "square" | "portrait" | "logos";
+    groupIndex: number;
+  }>({
+    isOpen: false,
+    file: null,
+    type: "landscape",
+    groupIndex: 0,
+  });
 
   // Fetch campaign and client data
   const { data: campaignData } = useQuery({
@@ -118,7 +130,7 @@ const PerformanceMaxBuilder = () => {
     const filesToAdd = Array.from(files).slice(0, remainingSlots);
 
     const validatedAssets: ImageAsset[] = [];
-    const rejectedFiles: string[] = [];
+    let firstRejectedFile: File | null = null;
 
     for (const file of filesToAdd) {
       try {
@@ -145,11 +157,13 @@ const PerformanceMaxBuilder = () => {
             file,
             preview: URL.createObjectURL(file),
           });
-        } else {
-          rejectedFiles.push(file.name);
+        } else if (!firstRejectedFile) {
+          firstRejectedFile = file;
         }
       } catch (error) {
-        rejectedFiles.push(file.name);
+        if (!firstRejectedFile) {
+          firstRejectedFile = file;
+        }
       }
     }
 
@@ -158,9 +172,13 @@ const PerformanceMaxBuilder = () => {
       setAssetGroups(newGroups);
     }
 
-    if (rejectedFiles.length > 0) {
-      const typeLabel = type === "logos" ? "square (1:1)" : type;
-      toast.error(`${rejectedFiles.length} image(s) rejected. Must be ${typeLabel} format.`);
+    if (firstRejectedFile) {
+      setResizeModal({
+        isOpen: true,
+        file: firstRejectedFile,
+        type,
+        groupIndex,
+      });
     }
   };
 
@@ -173,6 +191,20 @@ const PerformanceMaxBuilder = () => {
     const imageKey = type === "logos" ? "logos" : `${type}Images`;
     newGroups[groupIndex][imageKey].splice(imageIndex, 1);
     setAssetGroups(newGroups);
+  };
+
+  const handleResizedImageSave = (file: File) => {
+    const { groupIndex, type } = resizeModal;
+    const newGroups = [...assetGroups];
+    const imageKey = type === "logos" ? "logos" : `${type}Images`;
+    
+    newGroups[groupIndex][imageKey].push({
+      file,
+      preview: URL.createObjectURL(file),
+    });
+    
+    setAssetGroups(newGroups);
+    toast.success("Image resized and added successfully!");
   };
 
   const addAssetGroup = () => {
@@ -895,6 +927,14 @@ const PerformanceMaxBuilder = () => {
           </Card>
         </div>
       </div>
+
+      <ResizeImageModal
+        isOpen={resizeModal.isOpen}
+        onClose={() => setResizeModal({ ...resizeModal, isOpen: false })}
+        onSave={handleResizedImageSave}
+        imageFile={resizeModal.file}
+        targetType={resizeModal.type}
+      />
     </div>
   );
 };
