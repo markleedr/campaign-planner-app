@@ -244,7 +244,9 @@ const CampaignDetail = () => {
                         variant="outline" 
                         size="sm" 
                         onClick={() => {
-                          if (proof.ad_format === "carousel") {
+                          if (proof.platform === "google_pmax" || proof.ad_format === "pmax") {
+                            navigate(`/pmax-builder?campaignId=${campaignId}&adProofId=${proof.id}`);
+                          } else if (proof.ad_format === "carousel") {
                             navigate(`/carousel-builder?campaignId=${campaignId}&adProofId=${proof.id}&platform=${proof.platform}`);
                           } else {
                             navigate(`/ad/${proof.id}`);
