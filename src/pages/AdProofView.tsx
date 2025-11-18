@@ -17,6 +17,7 @@ import { ShareAdProofDialog } from "@/components/ShareAdProofDialog";
 import { FacebookSingleImagePreview } from "@/components/ad-previews/FacebookSingleImagePreview";
 import { LinkedInSingleImagePreview } from "@/components/ad-previews/LinkedInSingleImagePreview";
 import { InstagramSingleImagePreview } from "@/components/ad-previews/InstagramSingleImagePreview";
+import { InstagramStoryPreview } from "@/components/ad-previews/InstagramStoryPreview";
 import { FacebookStoryPreview } from "@/components/ad-previews/FacebookStoryPreview";
 
 interface AdData {
@@ -206,6 +207,7 @@ const AdProofView = () => {
     if (platform === "facebook" && format === "single-image") return FacebookSingleImagePreview as any;
     if (platform === "facebook" && format === "story") return FacebookStoryPreview as any;
     if (platform === "instagram" && format === "single-image") return InstagramSingleImagePreview as any;
+    if (platform === "instagram" && format === "story") return InstagramStoryPreview as any;
     if (platform === "linkedin" && format === "single-image") return LinkedInSingleImagePreview as any;
 
     return null;
