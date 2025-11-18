@@ -52,13 +52,13 @@ export const InstagramSingleImagePreview = ({
         
         {/* CTA Button overlaying bottom of image */}
         {callToAction && (
-          <div className="absolute bottom-0 left-0 right-0 p-3">
+          <div className="absolute bottom-0 left-0 right-0 p-2">
             <Button 
-              className="w-full bg-white/95 hover:bg-white text-primary border-0 shadow-sm font-medium justify-between"
+              className="w-full bg-[#0095F6] hover:bg-[#0095F6]/90 text-white border-0 shadow-sm font-semibold justify-between rounded-md h-9"
               size="sm"
             >
               {callToAction}
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 stroke-[3]" />
             </Button>
           </div>
         )}
