@@ -180,9 +180,9 @@ const ProofView = () => {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-8">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold">{client?.name} - {campaign?.name}</h2>
+            <h2 className="text-lg sm:text-xl font-semibold">{client?.name} - {campaign?.name}</h2>
             <div className="flex items-center gap-3 mt-1">
               <p className="text-sm text-muted-foreground">
                 {adProof.platform === "facebook" && "Facebook"}

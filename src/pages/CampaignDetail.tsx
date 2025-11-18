@@ -162,43 +162,49 @@ const CampaignDetail = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <main className="mx-auto px-6 py-8">
-        <div className="mb-6">
+      <main className="mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        <div className="mb-4 sm:mb-6">
           <Button
             variant="ghost"
             onClick={() => navigate("/dashboard")}
             className="mb-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
           </Button>
 
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">{campaign.name}</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{campaign.name}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {campaign.clients?.name}
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => navigate(`/create?campaignId=${campaign.id}`)}
+                className="flex-1 sm:flex-none"
               >
-                <Plus className="mr-2 h-4 w-4" />
-                Add New Ad
+                <Plus className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Add New Ad</span>
               </Button>
-              <Button variant="outline" onClick={handleEdit}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Campaign
+              <Button variant="outline" size="sm" onClick={handleEdit}>
+                <Edit className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm hidden sm:inline">Edit Campaign</span>
+                <span className="text-xs sm:hidden">Edit</span>
               </Button>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => setDeleteOpen(true)}
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                <Trash2 className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm hidden sm:inline">Delete</span>
+                <span className="text-xs sm:hidden">Del</span>
               </Button>
             </div>
           </div>
@@ -206,11 +212,11 @@ const CampaignDetail = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Ad Proofs</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Ad Proofs</CardTitle>
           </CardHeader>
           <CardContent>
             {!adProofs || adProofs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground text-center py-8">
                 No ad proofs yet. Click "Add New Ad" to create one.
               </p>
             ) : (
@@ -218,17 +224,17 @@ const CampaignDetail = () => {
                 {adProofs.map((proof) => (
                   <div
                     key={proof.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3"
                   >
-                    <div>
-                      <p className="font-medium">
+                    <div className="flex-1">
+                      <p className="text-sm sm:text-base font-medium">
                         {proof.platform} - {proof.ad_format}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Version {proof.current_version} • {proof.status}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -238,7 +244,7 @@ const CampaignDetail = () => {
                         }}
                       >
                         <Share2 className="mr-1 h-3 w-3" />
-                        share
+                        <span className="text-xs">share</span>
                       </Button>
                       <Button 
                         variant="outline" 
@@ -254,7 +260,7 @@ const CampaignDetail = () => {
                         }}
                       >
                         <Edit className="mr-1 h-3 w-3" />
-                        edit
+                        <span className="text-xs">edit</span>
                       </Button>
                       <Button 
                         variant="outline" 
@@ -262,7 +268,7 @@ const CampaignDetail = () => {
                         onClick={() => setDeleteAdProofId(proof.id)}
                       >
                         <Trash2 className="mr-1 h-3 w-3" />
-                        delete
+                        <span className="text-xs">delete</span>
                       </Button>
                     </div>
                   </div>

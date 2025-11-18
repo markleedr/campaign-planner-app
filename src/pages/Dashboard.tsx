@@ -53,15 +53,15 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <main className="mx-auto px-6 py-8">
-        <div className="mb-8">
+      <main className="mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Manage your clients and ad proofs</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Manage your clients and ad proofs</p>
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
           {/* Clients Section */}
           <Card className="lg:col-span-1">
             <CardHeader>
@@ -108,19 +108,19 @@ const Dashboard = () => {
           {/* Campaigns Section */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <FolderOpen className="h-5 w-5" />
-                  <CardTitle>Campaigns</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Campaigns</CardTitle>
                 </div>
                 {selectedClientId && (
                   <Button 
                     size="sm" 
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
                     onClick={() => setCreateCampaignOpen(true)}
                   >
                     <Plus className="mr-1 h-3 w-3" />
-                    New Campaign
+                    <span className="text-sm">New Campaign</span>
                   </Button>
                 )}
               </div>
@@ -128,27 +128,27 @@ const Dashboard = () => {
             <CardContent>
               {isLoading ? (
                 <div className="flex min-h-[200px] items-center justify-center">
-                  <p className="text-sm text-muted-foreground">Loading campaigns...</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Loading campaigns...</p>
                 </div>
               ) : campaigns && campaigns.length > 0 ? (
                 <div className="space-y-3">
                   {campaigns.map((campaign) => (
                     <div
                       key={campaign.id}
-                      className="flex items-center justify-between rounded-lg border p-4 hover:bg-secondary transition-colors"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border p-3 sm:p-4 hover:bg-secondary transition-colors"
                     >
                       <div>
-                        <h3 className="font-medium">{campaign.name}</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <h3 className="text-sm sm:text-base font-medium">{campaign.name}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {campaign.client?.name}
                         </p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm text-muted-foreground">
+                      <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
                           {campaign.ad_proofs?.[0]?.count || 0} ad{campaign.ad_proofs?.[0]?.count !== 1 ? 's' : ''}
                         </span>
                         <Link to={`/campaign/${campaign.id}`}>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" className="text-xs sm:text-sm">
                             View
                           </Button>
                         </Link>
@@ -157,8 +157,8 @@ const Dashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="flex min-h-[200px] items-center justify-center rounded-lg border-2 border-dashed">
-                  <p className="text-sm text-muted-foreground">
+                <div className="flex min-h-[200px] items-center justify-center rounded-lg border-2 border-dashed px-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground text-center">
                     {selectedClientId ? "No campaigns for this client yet." : "No campaigns yet. Create your first campaign to get started."}
                   </p>
                 </div>
