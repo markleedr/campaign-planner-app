@@ -71,12 +71,14 @@ const AdProofView = () => {
   });
 
   const [adData, setAdData] = useState<AdData>({});
+  const [adName, setAdName] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const autoSaveTimerRef = useRef<NodeJS.Timeout>();
   const initialDataRef = useRef<string>("");
+  const initialNameRef = useRef<string>("");
 
   const handleChange = (key: string, value: string) => {
     setAdData((prev) => ({ ...prev, [key]: value }));
@@ -126,16 +128,21 @@ const AdProofView = () => {
 
       const { error: updateErr } = await supabase
         .from("ad_proofs")
-        .update({ current_version: nextVersion })
+        .update({ 
+          current_version: nextVersion,
+          name: adName || null,
+        })
         .eq("id", adProof.id);
       if (updateErr) throw updateErr;
     },
     onSuccess: () => {
       toast.success("Saved new version");
       initialDataRef.current = JSON.stringify(adData);
+      initialNameRef.current = adName;
       setHasUnsavedChanges(false);
       queryClient.invalidateQueries({ queryKey: ["ad-proof", adProofId] });
       queryClient.invalidateQueries({ queryKey: ["ad-proof-latest-version", adProofId] });
+      queryClient.invalidateQueries({ queryKey: ["ad-proofs", adProof?.campaign_id] });
     },
     onError: () => toast.error("Failed to save changes"),
   });
@@ -146,15 +153,20 @@ const AdProofView = () => {
       initialDataRef.current = JSON.stringify(latestVersion.ad_data);
       setHasUnsavedChanges(false);
     }
-  }, [latestVersion]);
+    if (adProof?.name !== undefined) {
+      setAdName(adProof.name || "");
+      initialNameRef.current = adProof.name || "";
+    }
+  }, [latestVersion, adProof]);
 
   // Track unsaved changes
   useEffect(() => {
     if (initialDataRef.current) {
       const currentData = JSON.stringify(adData);
-      setHasUnsavedChanges(currentData !== initialDataRef.current);
+      const nameChanged = adName !== initialNameRef.current;
+      setHasUnsavedChanges(currentData !== initialDataRef.current || nameChanged);
     }
-  }, [adData]);
+  }, [adData, adName]);
 
   // Auto-save every 3 minutes
   useEffect(() => {
@@ -362,10 +374,23 @@ const AdProofView = () => {
             <CardContent className="space-y-4">
               {isLoading ? (
                 <p className="text-sm text-muted-foreground">Loading...</p>
-              ) : keysToRender.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No editable fields found.</p>
               ) : (
-                keysToRender.map((key) => {
+                <>
+                  {/* Ad Name Field - Always at the top */}
+                  <div className="space-y-2 pb-4 border-b">
+                    <Label htmlFor="adName">Ad Name (Optional)</Label>
+                    <Input
+                      id="adName"
+                      value={adName}
+                      onChange={(e) => setAdName(e.target.value)}
+                      placeholder="Enter a name for this ad"
+                    />
+                  </div>
+                  
+                  {keysToRender.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No editable fields found.</p>
+                  ) : (
+                    keysToRender.map((key) => {
                   // Special handling for callToAction - use Select
                   if (key === "callToAction") {
                     return (
@@ -483,7 +508,9 @@ const AdProofView = () => {
                       )}
                     </div>
                   );
-                })
+                    })
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
