@@ -51,13 +51,13 @@ export const InstagramCarouselPreview = ({
       </div>
 
       {/* Carousel Image */}
-      <div className="relative">
+      <div className="relative overflow-hidden">
         <div 
           className="flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentCard * 100}%)` }}
         >
           {cards.map((cardItem, idx) => (
-            <div key={idx} className="w-full flex-shrink-0">
+            <div key={idx} className="min-w-full flex-shrink-0">
               {cardItem.imageUrl ? (
                 <img src={cardItem.imageUrl} alt={cardItem.headline} className="w-full aspect-square object-cover" />
               ) : (
