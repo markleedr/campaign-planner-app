@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,9 @@ const CarouselBuilder = () => {
   const [searchParams] = useSearchParams();
   const campaignId = searchParams.get("campaignId");
   const platform = searchParams.get("platform");
+  const adProofId = searchParams.get("adProofId");
   const queryClient = useQueryClient();
+  const isEditMode = !!adProofId;
 
   const [adData, setAdData] = useState({
     primaryText: "",
@@ -61,6 +63,59 @@ const CarouselBuilder = () => {
     },
     enabled: !!campaignId,
   });
+
+  // Fetch existing ad proof data if editing
+  const { data: existingAdProof } = useQuery({
+    queryKey: ["ad-proof", adProofId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ad_proofs")
+        .select("*")
+        .eq("id", adProofId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: isEditMode,
+  });
+
+  const { data: existingVersion } = useQuery({
+    queryKey: ["ad-proof-version", adProofId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ad_proof_versions")
+        .select("*")
+        .eq("ad_proof_id", adProofId)
+        .order("version_number", { ascending: false })
+        .limit(1)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: isEditMode,
+  });
+
+  // Load existing data when in edit mode
+  useEffect(() => {
+    if (existingVersion?.ad_data) {
+      const data = existingVersion.ad_data as any;
+      setAdData({
+        primaryText: data.primaryText || "",
+        linkUrl: data.linkUrl || "",
+        callToAction: data.callToAction || "Learn More",
+      });
+      if (data.cards && Array.isArray(data.cards)) {
+        setCards(
+          data.cards.map((card: any) => ({
+            imageFile: null,
+            imagePreview: card.imageUrl || "",
+            headline: card.headline || "",
+            description: card.description || "",
+          }))
+        );
+      }
+    }
+  }, [existingVersion]);
 
   const handleCardImageUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,20 +159,22 @@ const CarouselBuilder = () => {
         throw new Error("Missing campaign information");
       }
 
-      // Generate share token
-      const shareToken = Math.random().toString(36).substring(2, 14);
+      // Generate share token (only for new ad proofs)
+      const shareToken = isEditMode
+        ? existingAdProof?.share_token
+        : Math.random().toString(36).substring(2, 14);
 
       // Upload all card images
       const uploadedCards = await Promise.all(
         cards.map(async (card, index) => {
-          let imageUrl = "";
+          let imageUrl = card.imagePreview; // Use existing preview if no new file
           if (card.imageFile) {
             const fileExt = card.imageFile.name.split(".").pop();
             const filePath = `${campaignId}/${shareToken}-card-${index}.${fileExt}`;
 
             const { error: uploadError } = await supabase.storage
               .from("ad-media")
-              .upload(filePath, card.imageFile);
+              .upload(filePath, card.imageFile, { upsert: true });
 
             if (uploadError) throw uploadError;
 
@@ -137,40 +194,74 @@ const CarouselBuilder = () => {
         })
       );
 
-      // Create ad proof
-      const { data: adProof, error: adProofError } = await supabase
-        .from("ad_proofs")
-        .insert({
-          campaign_id: campaignId,
-          platform: platform,
-          ad_format: "carousel",
-          share_token: shareToken,
-          status: "pending",
-        })
-        .select()
-        .single();
+      if (isEditMode) {
+        // Update existing ad proof
+        const nextVersionNumber = (existingAdProof?.current_version || 0) + 1;
 
-      if (adProofError) throw adProofError;
+        // Update ad proof
+        const { error: updateError } = await supabase
+          .from("ad_proofs")
+          .update({
+            current_version: nextVersionNumber,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", adProofId);
 
-      // Create version with ad data
-      const { error: versionError } = await supabase.from("ad_proof_versions").insert({
-        ad_proof_id: adProof.id,
-        version_number: 1,
-        ad_data: {
-          primaryText: adData.primaryText,
-          linkUrl: adData.linkUrl,
-          callToAction: adData.callToAction,
-          cards: uploadedCards,
-        },
-      });
+        if (updateError) throw updateError;
 
-      if (versionError) throw versionError;
+        // Create new version with updated ad data
+        const { error: versionError } = await supabase.from("ad_proof_versions").insert({
+          ad_proof_id: adProofId,
+          version_number: nextVersionNumber,
+          ad_data: {
+            primaryText: adData.primaryText,
+            linkUrl: adData.linkUrl,
+            callToAction: adData.callToAction,
+            cards: uploadedCards,
+          },
+        });
 
-      return adProof;
+        if (versionError) throw versionError;
+
+        return existingAdProof;
+      } else {
+        // Create new ad proof
+        const { data: adProof, error: adProofError } = await supabase
+          .from("ad_proofs")
+          .insert({
+            campaign_id: campaignId,
+            platform: platform,
+            ad_format: "carousel",
+            share_token: shareToken,
+            status: "pending",
+          })
+          .select()
+          .single();
+
+        if (adProofError) throw adProofError;
+
+        // Create version with ad data
+        const { error: versionError } = await supabase.from("ad_proof_versions").insert({
+          ad_proof_id: adProof.id,
+          version_number: 1,
+          ad_data: {
+            primaryText: adData.primaryText,
+            linkUrl: adData.linkUrl,
+            callToAction: adData.callToAction,
+            cards: uploadedCards,
+          },
+        });
+
+        if (versionError) throw versionError;
+
+        return adProof;
+      }
     },
     onSuccess: (data) => {
-      toast.success("Carousel ad proof created successfully!");
+      toast.success(isEditMode ? "Carousel ad updated successfully!" : "Carousel ad proof created successfully!");
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["ad-proofs", campaignId] });
+      queryClient.invalidateQueries({ queryKey: ["ad-proof", adProofId] });
       navigate(`/campaign/${campaignId}`);
     },
     onError: (error) => {
@@ -227,7 +318,7 @@ const CarouselBuilder = () => {
           <div className="space-y-6">
             <Card className="p-6">
               <h2 className="mb-4 text-xl font-semibold">
-                Create {platform?.charAt(0).toUpperCase() + platform?.slice(1)} Carousel Ad
+                {isEditMode ? "Edit" : "Create"} {platform?.charAt(0).toUpperCase() + platform?.slice(1)} Carousel Ad
               </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Primary Text */}
@@ -384,7 +475,10 @@ const CarouselBuilder = () => {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={createAdProof.isPending}>
-                  {createAdProof.isPending ? "Creating..." : "Create Ad Proof"}
+                  {createAdProof.isPending 
+                    ? (isEditMode ? "Saving..." : "Creating...") 
+                    : (isEditMode ? "Save Changes" : "Create Ad Proof")
+                  }
                 </Button>
               </form>
             </Card>

@@ -243,7 +243,13 @@ const CampaignDetail = () => {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => navigate(`/ad/${proof.id}`)}
+                        onClick={() => {
+                          if (proof.ad_format === "carousel") {
+                            navigate(`/carousel-builder?campaignId=${campaignId}&adProofId=${proof.id}&platform=${proof.platform}`);
+                          } else {
+                            navigate(`/ad/${proof.id}`);
+                          }
+                        }}
                       >
                         <Edit className="mr-1 h-3 w-3" />
                         edit
