@@ -55,7 +55,12 @@ const CreateAdProof = () => {
 
   const handleContinue = () => {
     if (selectedPlatform && selectedFormat && campaignId) {
-      navigate(`/ad-builder?campaignId=${campaignId}&platform=${selectedPlatform}&format=${selectedFormat}`);
+      // Route to CarouselBuilder for carousel format, AdBuilder for others
+      if (selectedFormat === "carousel") {
+        navigate(`/carousel-builder?campaignId=${campaignId}&platform=${selectedPlatform}`);
+      } else {
+        navigate(`/ad-builder?campaignId=${campaignId}&platform=${selectedPlatform}&format=${selectedFormat}`);
+      }
     }
   };
 

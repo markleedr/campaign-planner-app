@@ -104,15 +104,15 @@ export const FacebookCarouselPreview = ({
         </div>
       </div>
 
-      {/* Card Content */}
-      <div className="p-3 border-t border-border bg-muted/30">
-        <div className="text-xs text-muted-foreground uppercase mb-1">example.com</div>
-        <h3 className="font-semibold text-foreground text-sm mb-1 line-clamp-2">{card.headline}</h3>
+      {/* Card Content Below Image */}
+      <div className="bg-muted/30 px-3 pt-3 pb-2 border-t border-border">
+        <div className="text-xs text-muted-foreground mb-2">www.website.com</div>
+        {card.headline && <div className="font-semibold text-sm text-foreground mb-1">{card.headline}</div>}
         {card.description && (
-          <p className="text-xs text-muted-foreground line-clamp-1">{card.description}</p>
+          <p className="text-xs text-muted-foreground mb-3">{card.description}</p>
         )}
         {card.callToAction && (
-          <Button variant="outline" size="sm" className="w-full mt-2 text-primary font-semibold">
+          <Button variant="outline" size="sm" className="w-full border-border hover:bg-accent">
             {card.callToAction}
           </Button>
         )}
