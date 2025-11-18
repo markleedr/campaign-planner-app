@@ -1,13 +1,153 @@
 import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ThumbsUp, MessageSquare } from "lucide-react";
+import { ThumbsUp, MessageSquare, Loader2 } from "lucide-react";
+import { FacebookSingleImagePreview } from "@/components/ad-previews/FacebookSingleImagePreview";
+import { FacebookStoryPreview } from "@/components/ad-previews/FacebookStoryPreview";
+import { FacebookCarouselPreview } from "@/components/ad-previews/FacebookCarouselPreview";
+import { InstagramSingleImagePreview } from "@/components/ad-previews/InstagramSingleImagePreview";
+import { InstagramStoryPreview } from "@/components/ad-previews/InstagramStoryPreview";
+import { InstagramCarouselPreview } from "@/components/ad-previews/InstagramCarouselPreview";
+import { LinkedInSingleImagePreview } from "@/components/ad-previews/LinkedInSingleImagePreview";
+import { LinkedInCarouselPreview } from "@/components/ad-previews/LinkedInCarouselPreview";
 
 const ProofView = () => {
   const { shareToken } = useParams();
+
+  const { data: adProofData, isLoading } = useQuery({
+    queryKey: ["adProof", shareToken],
+    queryFn: async () => {
+      const { data: adProof, error: proofError } = await supabase
+        .from("ad_proofs")
+        .select("*, campaigns(name, client_id, clients(name, logo_url))")
+        .eq("share_token", shareToken)
+        .single();
+
+      if (proofError) throw proofError;
+
+      const { data: version, error: versionError } = await supabase
+        .from("ad_proof_versions")
+        .select("*")
+        .eq("ad_proof_id", adProof.id)
+        .eq("version_number", adProof.current_version)
+        .single();
+
+      if (versionError) throw versionError;
+
+      return { adProof, version };
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!adProofData) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Ad Proof Not Found</h2>
+          <p className="text-muted-foreground">This share link may be invalid or expired.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { adProof, version } = adProofData;
+  const adData = version.ad_data as any;
+  const campaign = adProof.campaigns as any;
+  const client = campaign?.clients;
+
+  const renderPreview = () => {
+    const platform = adProof.platform;
+    const format = adProof.ad_format;
+
+    if (platform === "facebook") {
+      if (format === "single_image") {
+        return <FacebookSingleImagePreview 
+          primaryText={adData.primaryText}
+          imageUrl={adData.imageUrl}
+          headline={adData.headline}
+          description={adData.description}
+          linkUrl={adData.linkUrl}
+          callToAction={adData.callToAction}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      } else if (format === "story") {
+        return <FacebookStoryPreview 
+          imageUrl={adData.imageUrl}
+          callToAction={adData.callToAction}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      } else if (format === "carousel") {
+        return <FacebookCarouselPreview 
+          primaryText={adData.primaryText}
+          cards={adData.cards}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      }
+    } else if (platform === "instagram") {
+      if (format === "single_image") {
+        return <InstagramSingleImagePreview 
+          primaryText={adData.primaryText}
+          imageUrl={adData.imageUrl}
+          headline={adData.headline}
+          description={adData.description}
+          callToAction={adData.callToAction}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      } else if (format === "story") {
+        return <InstagramStoryPreview 
+          imageUrl={adData.imageUrl}
+          callToAction={adData.callToAction}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      } else if (format === "carousel") {
+        return <InstagramCarouselPreview 
+          primaryText={adData.primaryText}
+          cards={adData.cards}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      }
+    } else if (platform === "linkedin") {
+      if (format === "single_image") {
+        return <LinkedInSingleImagePreview 
+          primaryText={adData.primaryText}
+          imageUrl={adData.imageUrl}
+          headline={adData.headline}
+          description={adData.description}
+          linkUrl={adData.linkUrl}
+          callToAction={adData.callToAction}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      } else if (format === "carousel") {
+        return <LinkedInCarouselPreview 
+          primaryText={adData.primaryText}
+          cards={adData.cards}
+          clientName={client?.name}
+          clientLogoUrl={client?.logo_url}
+        />;
+      }
+    }
+
+    return <div className="text-muted-foreground">Preview not available for this ad type</div>;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -20,8 +160,8 @@ const ProofView = () => {
 
       <main className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold">Client Name - Campaign Name</h2>
-          <p className="text-sm text-muted-foreground">Version 1</p>
+          <h2 className="text-xl font-semibold">{client?.name} - {campaign?.name}</h2>
+          <p className="text-sm text-muted-foreground">Version {adProof.current_version}</p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
@@ -32,8 +172,8 @@ const ProofView = () => {
                 <CardTitle>Ad Preview</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex min-h-[400px] items-center justify-center rounded-lg border-2 border-dashed text-muted-foreground">
-                  Ad preview will appear here
+                <div className="flex min-h-[400px] items-center justify-center">
+                  {renderPreview()}
                 </div>
               </CardContent>
             </Card>
