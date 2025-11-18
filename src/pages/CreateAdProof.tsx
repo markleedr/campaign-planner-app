@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+import { ArrowLeft, Facebook, Instagram, Linkedin } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import Navigation from "@/components/Navigation";
 
@@ -17,7 +17,6 @@ const CreateAdProof = () => {
     { id: "facebook", name: "Facebook", icon: Facebook, color: "text-blue-600" },
     { id: "instagram", name: "Instagram", icon: Instagram, color: "text-pink-600" },
     { id: "linkedin", name: "LinkedIn", icon: Linkedin, color: "text-blue-700" },
-    { id: "youtube", name: "YouTube", icon: Youtube, color: "text-red-600" },
     { id: "google_pmax", name: "Google Performance Max", icon: SiGoogle, color: "text-blue-500" },
   ];
 
@@ -35,9 +34,6 @@ const CreateAdProof = () => {
     linkedin: [
       { id: "single_image", name: "Single Image", description: "Single image/video feed ad" },
       { id: "carousel", name: "Carousel", description: "Multiple images in carousel format" },
-    ],
-    youtube: [
-      { id: "video", name: "Video Ad", description: "Video advertisement for YouTube" },
     ],
     google_pmax: [
       { id: "pmax", name: "Performance Max", description: "Multi-format Performance Max campaign" },
