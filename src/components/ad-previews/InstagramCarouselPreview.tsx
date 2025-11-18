@@ -63,7 +63,7 @@ export const InstagramCarouselPreview = ({
   const card = cards[currentCard];
 
   return (
-    <div className="w-full max-w-[500px] bg-background border border-border rounded-sm overflow-hidden shadow-sm">
+    <div className="w-full max-w-[375px] bg-background border border-border rounded-sm overflow-hidden shadow-sm">
       {/* Profile Header */}
       <div className="p-3 flex items-center gap-2 border-b border-border">
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5">
