@@ -56,26 +56,26 @@ export const FacebookSingleImagePreview = ({
       )}
 
       {/* Ad Content Card */}
-      {(headline || description || linkUrl) && (
+      {(headline || description || linkUrl || callToAction) && (
         <div className="border-t border-border bg-card p-3">
           {linkUrl && (
             <div className="text-xs text-muted-foreground uppercase mb-1">{linkUrl}</div>
           )}
-          {headline && (
-            <div className="font-semibold text-foreground mb-1">{headline}</div>
-          )}
-          {description && (
-            <div className="text-sm text-muted-foreground">{description}</div>
-          )}
-        </div>
-      )}
-
-      {/* CTA Button */}
-      {callToAction && (
-        <div className="px-3 pb-3">
-          <Button variant="secondary" size="sm" className="w-full">
-            {callToAction}
-          </Button>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              {headline && (
+                <div className="font-semibold text-foreground mb-1">{headline}</div>
+              )}
+              {description && (
+                <div className="text-sm text-muted-foreground">{description}</div>
+              )}
+            </div>
+            {callToAction && (
+              <Button variant="secondary" size="sm" className="flex-shrink-0">
+                {callToAction}
+              </Button>
+            )}
+          </div>
         </div>
       )}
 

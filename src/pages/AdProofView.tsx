@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Save, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 // Previews
@@ -19,6 +20,14 @@ import { FacebookStoryPreview } from "@/components/ad-previews/FacebookStoryPrev
 interface AdData {
   [key: string]: any;
 }
+
+const CTA_OPTIONS = [
+  "Shop Now",
+  "Learn More",
+  "Sign Up",
+  "Contact Us",
+  "Book Now",
+];
 
 const AdProofView = () => {
   const { adProofId } = useParams();
@@ -56,6 +65,7 @@ const AdProofView = () => {
   });
 
   const [adData, setAdData] = useState<AdData>({});
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (latestVersion?.ad_data) {
@@ -65,6 +75,34 @@ const AdProofView = () => {
 
   const handleChange = (key: string, value: string) => {
     setAdData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `ad-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("ad-media")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("ad-media").getPublicUrl(filePath);
+      
+      setAdData((prev) => ({ ...prev, imageUrl: data.publicUrl }));
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const saveMutation = useMutation({
@@ -182,26 +220,96 @@ const AdProofView = () => {
               ) : keysToRender.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No editable fields found.</p>
               ) : (
-                keysToRender.map((key) => (
-                  <div className="space-y-2" key={key}>
-                    <Label htmlFor={key}>{key}</Label>
-                    {key.toLowerCase().includes("text") || key === "description" ? (
-                      <Textarea
-                        id={key}
-                        value={adData[key] ?? ""}
-                        onChange={(e) => handleChange(key, e.target.value)}
-                        rows={4}
-                      />
-                    ) : (
-                      <Input
-                        id={key}
-                        value={adData[key] ?? ""}
-                        onChange={(e) => handleChange(key, e.target.value)}
-                        placeholder={`Enter ${key}`}
-                      />
-                    )}
-                  </div>
-                ))
+                keysToRender.map((key) => {
+                  // Special handling for callToAction - use Select
+                  if (key === "callToAction") {
+                    return (
+                      <div className="space-y-2" key={key}>
+                        <Label htmlFor={key}>Call to Action</Label>
+                        <Select
+                          value={adData[key] ?? ""}
+                          onValueChange={(value) => handleChange(key, value)}
+                        >
+                          <SelectTrigger id={key}>
+                            <SelectValue placeholder="Select CTA" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CTA_OPTIONS.map((cta) => (
+                              <SelectItem key={cta} value={cta}>
+                                {cta}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  }
+
+                  // Special handling for imageUrl - use file upload
+                  if (key === "imageUrl") {
+                    return (
+                      <div className="space-y-2" key={key}>
+                        <Label htmlFor={key}>Ad Image</Label>
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Input
+                              id={key}
+                              value={adData[key] ?? ""}
+                              onChange={(e) => handleChange(key, e.target.value)}
+                              placeholder="Or paste image URL"
+                            />
+                            <Label
+                              htmlFor="image-upload"
+                              className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+                            >
+                              <Upload className="h-4 w-4" />
+                              {uploading ? "Uploading..." : "Upload"}
+                            </Label>
+                            <input
+                              id="image-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageUpload}
+                              disabled={uploading}
+                            />
+                          </div>
+                          {adData[key] && (
+                            <div className="mt-2">
+                              <img
+                                src={adData[key]}
+                                alt="Preview"
+                                className="w-full max-w-xs rounded border"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Default rendering for other fields
+                  return (
+                    <div className="space-y-2" key={key}>
+                      <Label htmlFor={key}>{key}</Label>
+                      {key.toLowerCase().includes("text") || key === "description" ? (
+                        <Textarea
+                          id={key}
+                          value={adData[key] ?? ""}
+                          onChange={(e) => handleChange(key, e.target.value)}
+                          rows={4}
+                        />
+                      ) : (
+                        <Input
+                          id={key}
+                          value={adData[key] ?? ""}
+                          onChange={(e) => handleChange(key, e.target.value)}
+                          placeholder={`Enter ${key}`}
+                        />
+                      )}
+                    </div>
+                  );
+                })
               )}
             </CardContent>
           </Card>
