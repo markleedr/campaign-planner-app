@@ -270,7 +270,7 @@ const CampaignDetail = () => {
                         Version {proof.current_version} • {proof.status}
                       </p>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/ad/${proof.id}`)}>
                       View
                     </Button>
                   </div>
