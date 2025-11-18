@@ -84,7 +84,7 @@ export const InstagramCarouselPreview = ({
       </div>
 
       {/* Engagement Bar */}
-      <div className="p-3 space-y-2">
+      <div className="p-3 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Heart className="w-6 h-6 text-foreground" />
@@ -94,6 +94,13 @@ export const InstagramCarouselPreview = ({
           <Bookmark className="w-6 h-6 text-foreground" />
         </div>
 
+        {/* CTA Button */}
+        {card.callToAction && (
+          <Button className="w-full bg-[#0095F6] hover:bg-[#0095F6]/90 text-white border-0 font-semibold" size="sm">
+            {card.callToAction}
+          </Button>
+        )}
+
         {/* Caption */}
         <div className="text-sm">
           {primaryText && (
@@ -102,20 +109,7 @@ export const InstagramCarouselPreview = ({
               {primaryText}
             </p>
           )}
-          {card.headline && (
-            <p className="text-foreground font-semibold mt-1">{card.headline}</p>
-          )}
-          {card.description && (
-            <p className="text-muted-foreground text-xs mt-1">{card.description}</p>
-          )}
         </div>
-
-        {/* CTA Button */}
-        {card.callToAction && (
-          <Button className="w-full bg-[#0095F6] hover:bg-[#0095F6]/90 text-white border-0 font-semibold" size="sm">
-            {card.callToAction}
-          </Button>
-        )}
       </div>
     </div>
   );
