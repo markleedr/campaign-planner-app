@@ -66,38 +66,16 @@ const ProofView = () => {
     setSelectedVersion(adProofData.adProof.current_version);
   }
 
-  const currentVersion = adProofData?.versions?.find(
-    v => v.version_number === selectedVersion
-  );
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!adProofData || !currentVersion) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Ad Proof Not Found</h2>
-          <p className="text-muted-foreground">This share link may be invalid or expired.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const { adProof, versions, approvals } = adProofData;
-  const adData = currentVersion.ad_data as any;
-  const campaign = adProof.campaigns as any;
-  const client = campaign?.clients;
-
   const submitFeedback = useMutation({
     mutationFn: async (decision: "approved" | "revision") => {
+      if (!adProofData?.adProof) throw new Error("No data available");
+
+      const { adProof } = adProofData;
+      const campaign = adProof.campaigns as any;
+      const client = campaign?.clients;
+
       setIsSubmitting(true);
-      
+
       // Insert approval
       const { error: approvalError } = await supabase
         .from("approvals")
@@ -132,8 +110,8 @@ const ProofView = () => {
     onSuccess: (decision) => {
       setIsSubmitting(false);
       toast.success(
-        decision === "approved" 
-          ? "Your approval has been submitted!" 
+        decision === "approved"
+          ? "Your approval has been submitted!"
           : "Your revision request has been submitted!"
       );
       setApproverName("");
@@ -147,13 +125,41 @@ const ProofView = () => {
     },
   });
 
+  const currentVersion = adProofData?.versions?.find(
+    v => v.version_number === selectedVersion
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!adProofData || !currentVersion) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Ad Proof Not Found</h2>
+          <p className="text-muted-foreground">This share link may be invalid or expired.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { adProof, versions, approvals } = adProofData;
+  const adData = currentVersion.ad_data as any;
+  const campaign = adProof.campaigns as any;
+  const client = campaign?.clients;
+
   const renderPreview = () => {
     const platform = adProof.platform;
     const format = adProof.ad_format;
 
     if (platform === "facebook") {
       if (format === "single_image" || format === "single-image") {
-        return <FacebookSingleImagePreview 
+        return <FacebookSingleImagePreview
           primaryText={adData.primaryText}
           imageUrl={adData.imageUrl}
           headline={adData.headline}
@@ -164,14 +170,14 @@ const ProofView = () => {
           clientLogoUrl={client?.logo_url}
         />;
       } else if (format === "story") {
-        return <FacebookStoryPreview 
+        return <FacebookStoryPreview
           imageUrl={adData.imageUrl}
           callToAction={adData.callToAction}
           clientName={client?.name}
           clientLogoUrl={client?.logo_url}
         />;
       } else if (format === "carousel") {
-        return <FacebookCarouselPreview 
+        return <FacebookCarouselPreview
           primaryText={adData.primaryText}
           cards={adData.cards}
           clientName={client?.name}
@@ -180,7 +186,7 @@ const ProofView = () => {
       }
     } else if (platform === "instagram") {
       if (format === "single_image" || format === "single-image") {
-        return <InstagramSingleImagePreview 
+        return <InstagramSingleImagePreview
           primaryText={adData.primaryText}
           imageUrl={adData.imageUrl}
           headline={adData.headline}
@@ -190,14 +196,14 @@ const ProofView = () => {
           clientLogoUrl={client?.logo_url}
         />;
       } else if (format === "story") {
-        return <InstagramStoryPreview 
+        return <InstagramStoryPreview
           imageUrl={adData.imageUrl}
           callToAction={adData.callToAction}
           clientName={client?.name}
           clientLogoUrl={client?.logo_url}
         />;
       } else if (format === "carousel") {
-        return <InstagramCarouselPreview 
+        return <InstagramCarouselPreview
           primaryText={adData.primaryText}
           cards={adData.cards}
           clientName={client?.name}
@@ -206,7 +212,7 @@ const ProofView = () => {
       }
     } else if (platform === "linkedin") {
       if (format === "single_image" || format === "single-image") {
-        return <LinkedInSingleImagePreview 
+        return <LinkedInSingleImagePreview
           primaryText={adData.primaryText}
           imageUrl={adData.imageUrl}
           headline={adData.headline}
@@ -217,7 +223,7 @@ const ProofView = () => {
           clientLogoUrl={client?.logo_url}
         />;
       } else if (format === "carousel") {
-        return <LinkedInCarouselPreview 
+        return <LinkedInCarouselPreview
           primaryText={adData.primaryText}
           cards={adData.cards}
           clientName={client?.name}
@@ -226,7 +232,7 @@ const ProofView = () => {
       }
     } else if (platform === "google_pmax" || platform === "google-pmax") {
       if (format === "pmax") {
-        return <GooglePerformanceMaxPreview 
+        return <GooglePerformanceMaxPreview
           assetGroups={adData.assetGroups}
           clientName={client?.name}
           clientLogoUrl={client?.logo_url}
@@ -268,7 +274,7 @@ const ProofView = () => {
               </p>
             </div>
           </div>
-          
+
           {versions && versions.length > 1 && (
             <Select
               value={selectedVersion?.toString()}
@@ -313,9 +319,9 @@ const ProofView = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Your Name *</Label>
-                  <Input 
-                    id="name" 
-                    placeholder="Enter your name" 
+                  <Input
+                    id="name"
+                    placeholder="Enter your name"
                     value={approverName}
                     onChange={(e) => setApproverName(e.target.value)}
                     disabled={isSubmitting}
@@ -333,7 +339,7 @@ const ProofView = () => {
                   />
                 </div>
                 <div className="flex gap-3">
-                  <Button 
+                  <Button
                     className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                     onClick={() => submitFeedback.mutate("approved")}
                     disabled={!approverName.trim() || !comment.trim() || isSubmitting}
@@ -341,8 +347,8 @@ const ProofView = () => {
                     <ThumbsUp className="mr-2 h-4 w-4" />
                     Approve
                   </Button>
-                  <Button 
-                    className="flex-1" 
+                  <Button
+                    className="flex-1"
                     variant="outline"
                     onClick={() => submitFeedback.mutate("revision")}
                     disabled={!approverName.trim() || !comment.trim() || isSubmitting}

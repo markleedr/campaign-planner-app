@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -23,11 +23,11 @@ const AdBuilder = () => {
   const format = searchParams.get("format");
   const queryClient = useQueryClient();
 
-  // Redirect to Performance Max builder if needed
-  if (platform === "google_pmax" && format === "pmax") {
-    navigate(`/pmax-builder?campaignId=${campaignId}&platform=${platform}&format=${format}`, { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (platform === "google_pmax" && format === "pmax") {
+      navigate(`/pmax-builder?campaignId=${campaignId}&platform=${platform}&format=${format}`, { replace: true });
+    }
+  }, [platform, format, campaignId, navigate]);
 
   const platformNames: Record<string, string> = {
     facebook: "Facebook",
@@ -97,7 +97,7 @@ const AdBuilder = () => {
       if (imageFile) {
         const fileExt = imageFile.name.split(".").pop();
         const filePath = `${campaignId}/${shareToken}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from("ad-media")
           .upload(filePath, imageFile);
@@ -153,6 +153,10 @@ const AdBuilder = () => {
       console.error(error);
     },
   });
+
+  if (platform === "google_pmax" && format === "pmax") {
+    return null;
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

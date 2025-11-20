@@ -95,24 +95,24 @@ const PerformanceMaxBuilder = () => {
     queryKey: ["ad-proof", adProofId],
     queryFn: async () => {
       if (!adProofId) return null;
-      
+
       const { data: adProof, error: adProofError } = await supabase
         .from("ad_proofs")
         .select("*")
         .eq("id", adProofId)
         .single();
-      
+
       if (adProofError) throw adProofError;
-      
+
       const { data: version, error: versionError } = await supabase
         .from("ad_proof_versions")
         .select("*")
         .eq("ad_proof_id", adProofId)
         .eq("version_number", adProof.current_version)
         .single();
-      
+
       if (versionError) throw versionError;
-      
+
       return { adProof, version };
     },
     enabled: !!adProofId,
@@ -249,12 +249,12 @@ const PerformanceMaxBuilder = () => {
     const { groupIndex, type } = resizeModal;
     const newGroups = [...assetGroups];
     const imageKey = type === "logos" ? "logos" : `${type}Images`;
-    
+
     newGroups[groupIndex][imageKey].push({
       file,
       preview: URL.createObjectURL(file),
     });
-    
+
     setAssetGroups(newGroups);
     toast.success("Image resized and added successfully!");
   };
@@ -380,168 +380,149 @@ const PerformanceMaxBuilder = () => {
 
   const saveAdProof = useMutation({
     mutationFn: async () => {
-      console.log("=== SAVE AD PROOF STARTED ===");
-      console.log("Campaign ID:", campaignId);
-      console.log("Ad Proof ID:", adProofId);
-      console.log("Asset Groups:", assetGroups);
-      
       if (!campaignId) throw new Error("Missing campaign information");
 
       // Validate all asset groups
       const allErrors: string[] = [];
       assetGroups.forEach((group, index) => {
-        console.log(`Validating Asset Group ${index + 1}:`, {
-          name: group.name,
-          landscapeCount: group.landscapeImages.length,
-          squareCount: group.squareImages.length,
-          logosCount: group.logos.length,
-          landscapeImages: group.landscapeImages,
-          squareImages: group.squareImages,
-          logos: group.logos,
-        });
-        
         const errors = validateAssetGroup(group);
         if (errors.length > 0) {
-          console.log(`Errors for group ${index + 1}:`, errors);
           allErrors.push(`Asset Group ${index + 1}: ${errors.join(", ")}`);
         }
       });
 
       if (allErrors.length > 0) {
-        console.error("Validation failed:", allErrors);
-        throw new Error(`Validation failed:\n${allErrors.join("\n")}`);
-      }
-      
-      console.log("Validation passed, proceeding with upload...");
-
-      // Use existing share token if editing, otherwise generate new one
-      const shareToken = adProofId && existingAdProof?.adProof?.share_token 
-        ? existingAdProof.adProof.share_token 
-        : Math.random().toString(36).substring(2, 14);
-
-      // Upload all images (only upload new files, keep existing URLs)
-      const uploadedAssetGroups = await Promise.all(
-        assetGroups.map(async (group, groupIdx) => {
-          const uploadImage = async (image: ImageAsset, path: string) => {
-            // If no file but has preview URL, it's an existing image - keep the URL
-            if (!image.file && image.preview) return image.preview;
-            // If no file at all, return empty string
-            if (!image.file) return "";
-            
-            const { error } = await supabase.storage.from("ad-media").upload(path, image.file, {
-              upsert: true, // Overwrite if exists
-            });
-            if (error) throw error;
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from("ad-media").getPublicUrl(path);
-            return publicUrl;
-          };
-
-          const landscapeUrls = await Promise.all(
-            group.landscapeImages.map((img, i) =>
-              uploadImage(img, `${campaignId}/${shareToken}/landscape-${i}.jpg`)
-            )
-          );
-          const squareUrls = await Promise.all(
-            group.squareImages.map((img, i) =>
-              uploadImage(img, `${campaignId}/${shareToken}/square-${i}.jpg`)
-            )
-          );
-          const portraitUrls = await Promise.all(
-            group.portraitImages.map((img, i) =>
-              uploadImage(img, `${campaignId}/${shareToken}/portrait-${i}.jpg`)
-            )
-          );
-          const logoUrls = await Promise.all(
-            group.logos.map((img, i) => uploadImage(img, `${campaignId}/${shareToken}/logo-${i}.jpg`))
-          );
-
-          return {
-            ...group,
-            landscapeImages: landscapeUrls,
-            squareImages: squareUrls,
-            portraitImages: portraitUrls,
-            logos: logoUrls,
-          };
-        })
-      );
-
-      let adProofIdToUse = adProofId;
-
-      if (adProofId) {
-        // Update existing ad proof
-        const { error: updateError } = await supabase
-          .from("ad_proofs")
-          .update({
-            updated_at: new Date().toISOString(),
-            name: adName || null,
-          })
-          .eq("id", adProofId);
-
-        if (updateError) throw updateError;
-
-        // Get current version number
-        const currentVersion = existingAdProof?.adProof?.current_version || 1;
-        const newVersion = currentVersion + 1;
-
-        // Create new version
-        const { error: versionError } = await supabase.from("ad_proof_versions").insert({
-          ad_proof_id: adProofId,
-          version_number: newVersion,
-          ad_data: { name: adName, assetGroups: uploadedAssetGroups },
-        });
-
-        if (versionError) throw versionError;
-
-        // Update current version
-        const { error: updateVersionError } = await supabase
-          .from("ad_proofs")
-          .update({ current_version: newVersion })
-          .eq("id", adProofId);
-
-        if (updateVersionError) throw updateVersionError;
-      } else {
-        // Create new ad proof
-        const { data: adProof, error: adProofError } = await supabase
-          .from("ad_proofs")
-          .insert({
-            campaign_id: campaignId,
-            platform: "google_pmax",
-            ad_format: "pmax",
-            share_token: shareToken,
-            status: "pending",
-            name: adName || null,
-          })
-          .select()
-          .single();
-
-        if (adProofError) throw adProofError;
-
-        // Create first version with asset group data
-        const { error: versionError } = await supabase.from("ad_proof_versions").insert({
-          ad_proof_id: adProof.id,
-          version_number: 1,
-          ad_data: { name: adName, assetGroups: uploadedAssetGroups },
-        });
-
-        if (versionError) throw versionError;
-
-        adProofIdToUse = adProof.id;
+        throw new Error(allErrors.join("\n"));
       }
 
-      return adProofIdToUse;
-    },
-    onSuccess: (savedAdProofId) => {
-      toast.success(adProofId ? "Changes saved successfully!" : "Performance Max campaign created successfully!");
-      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-      queryClient.invalidateQueries({ queryKey: ["ad-proofs", campaignId] });
-      queryClient.invalidateQueries({ queryKey: ["ad-proof", adProofId] });
-      navigate(`/campaign/${campaignId}`);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
+        // Use existing share token if editing, otherwise generate new one
+        const shareToken = adProofId && existingAdProof?.adProof?.share_token
+          ? existingAdProof.adProof.share_token
+          : Math.random().toString(36).substring(2, 14);
+
+        // Upload all images (only upload new files, keep existing URLs)
+        const uploadedAssetGroups = await Promise.all(
+          assetGroups.map(async (group, groupIdx) => {
+            const uploadImage = async (image: ImageAsset, path: string) => {
+              // If no file but has preview URL, it's an existing image - keep the URL
+              if (!image.file && image.preview) return image.preview;
+              // If no file at all, return empty string
+              if (!image.file) return "";
+
+              const { error } = await supabase.storage.from("ad-media").upload(path, image.file, {
+                upsert: true, // Overwrite if exists
+              });
+              if (error) throw error;
+              const {
+                data: { publicUrl },
+              } = supabase.storage.from("ad-media").getPublicUrl(path);
+              return publicUrl;
+            };
+
+            const landscapeUrls = await Promise.all(
+              group.landscapeImages.map((img, i) =>
+                uploadImage(img, `${campaignId}/${shareToken}/landscape-${i}.jpg`)
+              )
+            );
+            const squareUrls = await Promise.all(
+              group.squareImages.map((img, i) =>
+                uploadImage(img, `${campaignId}/${shareToken}/square-${i}.jpg`)
+              )
+            );
+            const portraitUrls = await Promise.all(
+              group.portraitImages.map((img, i) =>
+                uploadImage(img, `${campaignId}/${shareToken}/portrait-${i}.jpg`)
+              )
+            );
+            const logoUrls = await Promise.all(
+              group.logos.map((img, i) => uploadImage(img, `${campaignId}/${shareToken}/logo-${i}.jpg`))
+            );
+
+            return {
+              ...group,
+              landscapeImages: landscapeUrls,
+              squareImages: squareUrls,
+              portraitImages: portraitUrls,
+              logos: logoUrls,
+            };
+          })
+        );
+
+        let adProofIdToUse = adProofId;
+
+        if (adProofId) {
+          // Update existing ad proof
+          const { error: updateError } = await supabase
+            .from("ad_proofs")
+            .update({
+              updated_at: new Date().toISOString(),
+              name: adName || null,
+            })
+            .eq("id", adProofId);
+
+          if (updateError) throw updateError;
+
+          // Get current version number
+          const currentVersion = existingAdProof?.adProof?.current_version || 1;
+          const newVersion = currentVersion + 1;
+
+          // Create new version
+          const { error: versionError } = await supabase.from("ad_proof_versions").insert({
+            ad_proof_id: adProofId,
+            version_number: newVersion,
+            ad_data: { name: adName, assetGroups: uploadedAssetGroups },
+          });
+
+          if (versionError) throw versionError;
+
+          // Update current version
+          const { error: updateVersionError } = await supabase
+            .from("ad_proofs")
+            .update({ current_version: newVersion })
+            .eq("id", adProofId);
+
+          if (updateVersionError) throw updateVersionError;
+        } else {
+          // Create new ad proof
+          const { data: adProof, error: adProofError } = await supabase
+            .from("ad_proofs")
+            .insert({
+              campaign_id: campaignId,
+              platform: "google_pmax",
+              ad_format: "pmax",
+              share_token: shareToken,
+              status: "pending",
+              name: adName || null,
+            })
+            .select()
+            .single();
+
+          if (adProofError) throw adProofError;
+
+          // Create first version with asset group data
+          const { error: versionError } = await supabase.from("ad_proof_versions").insert({
+            ad_proof_id: adProof.id,
+            version_number: 1,
+            ad_data: { name: adName, assetGroups: uploadedAssetGroups },
+          });
+
+          if (versionError) throw versionError;
+
+          adProofIdToUse = adProof.id;
+        }
+
+        return adProofIdToUse;
+      },
+      onSuccess: (savedAdProofId) => {
+        toast.success(adProofId ? "Changes saved successfully!" : "Performance Max campaign created successfully!");
+        queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+        queryClient.invalidateQueries({ queryKey: ["ad-proofs", campaignId] });
+        queryClient.invalidateQueries({ queryKey: ["ad-proof", adProofId] });
+        navigate(`/campaign/${campaignId}`);
+      },
+        onError: (error: Error) => {
+          toast.error(error.message);
+        },
   });
 
   const activeGroup = assetGroups[activeGroupIndex];
