@@ -2,3 +2,9 @@ project_id = "drgcguybpkfkitghhjox"
 
 [functions.send-approval-notification]
 verify_jwt = false
+
+[auth]
+enabled = true
+site_url = "https://campaignplanner.com.au"
+additional_redirect_urls = ["https://127.0.0.1:3000", "http://localhost:5173", "https://campaignplanner.com.au/**"]
+jwt_expiry = 3600
